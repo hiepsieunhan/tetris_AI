@@ -26,8 +26,8 @@ public class SearchLookAhead {
 	private void search() {
 		counter = 0;
 		initVectors();
-		int crossOverNo = (int)(population/3.0);
-		int mutateNo = (int)(population/3.0);
+		int crossOverNo = (int)(population/6.0);
+		int mutateNo = (int)(population/6.0);
 		while (true) {
 			ArrayList<Strategy> crossOverList = crossOver(crossOverNo);
 			ArrayList<Strategy> mutateList = mutate(mutateNo);

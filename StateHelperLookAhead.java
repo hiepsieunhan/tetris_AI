@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class StateHelperLookAhead {
 
 	private static int ROWS = State.ROWS;
@@ -21,13 +23,28 @@ public class StateHelperLookAhead {
 
 
 	public static int bestMove(State state, double[] wValues) {
-		int[][] legalMoves = state.legalMoves();
+		StateLookAhead stateL = new StateLookAhead(state);
+		int[][] legalMoves = stateL.legalMoves();
+		FirstMove[] allMove = new FirstMove[legalMoves.length];
+		for (int i = 0; i < legalMoves.length; i++) {
+			double curValue = makeMove(stateL, i, wValues);
+			allMove[i] = new FirstMove(i, curValue);
+		}
+		Arrays.sort(allMove);
+		int[] filteredMove = new int[Math.min(5, allMove.length)];
+		for (int i = 0; i < filteredMove.length; i++) {
+			filteredMove[i] = allMove[i].move;
+		}
+		return bestFilteredMove(state, wValues, filteredMove);
+	}
+
+	public static int bestFilteredMove(State state, double[] wValues, int[] filteredMove) {
 		int bestMove = 0;
 		double maxRes = -Double.MAX_VALUE;
-		for (int i = 0; i < legalMoves.length; i++) {
+		for (int i = 0; i < filteredMove.length; i++) {
 			double curExp = 0;
 			StateLookAhead curState = new StateLookAhead(state);
-			curState.makeMove(i);
+			curState.makeMove(filteredMove[i]);
 			if (curState.hasLost()) {
 				continue;
 			}
@@ -37,7 +54,7 @@ public class StateHelperLookAhead {
 			}
 			if (Double.compare(curExp, maxRes) > 0) {
 				maxRes = curExp;
-				bestMove = i;
+				bestMove = filteredMove[i];
 			}
 		}
 		return bestMove;
@@ -300,4 +317,17 @@ public class StateHelperLookAhead {
 		return res;
 	}
 
+}
+
+class FirstMove implements Comparable<FirstMove> {
+	public double expectedValue;
+	public int move;
+	public FirstMove(int move, double expectedValue) {
+		this.move = move;
+		this.expectedValue = expectedValue;
+	}
+
+	public int compareTo(FirstMove other) {
+		return Double.compare(other.expectedValue, this.expectedValue);
+	}
 }
