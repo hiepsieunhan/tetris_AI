@@ -1,0 +1,4 @@
+*.class
+*.rar
+*.txt
+!best.txt
