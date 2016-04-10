@@ -1,6 +1,6 @@
 
 public class PlayerSkeleton {
-	double[] wValues = {0.1871, -0.3838, -0.1993, -0.092, -0.1759, -0.3865 ,-0.1519 ,-0.4035, -0.1729, -0.1662, -0.1233, -0.2532, -0.344 ,-0.3843};
+	double[] wValues = {0.1994, -0.3724, -0.3289, -0.2073, -0.0559, 0.0153, 0.2015, -0.2133, -0.05, -0.1489, -0.0478, -0.2172, -0.4931, -0.5133};
 
 	public int pickMove(State s, int[][] legalMoves) {
 		return StateHelper.bestMove(s, wValues);
@@ -15,7 +15,7 @@ public class PlayerSkeleton {
 			s.draw();
 			s.drawNext(0,0);
 			try {
-				Thread.sleep(0);
+				Thread.sleep(30);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
