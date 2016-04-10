@@ -1,11 +1,7 @@
 import java.awt.Color;
 
-
-/* 
-	just simply copy from State.java
-	add some more methods to set variables 
-*/
 public class StateLookAhead {
+
 	public static final int COLS = 10;
 	public static final int ROWS = 21;
 	public static final int N_PIECES = 7;
@@ -27,8 +23,6 @@ public class StateLookAhead {
 	
 	//number of next piece
 	protected int nextPiece;
-	
-	
 	
 	//all legal moves - first index is piece type - then a list of 2-length arrays
 	protected static int[][][] legalMoves = new int[N_PIECES][][];
@@ -139,10 +133,6 @@ public class StateLookAhead {
 	public int getNextPiece() {
 		return nextPiece;
 	}
-
-	public void setNextPiece(int nextPiece) {
-		this.nextPiece = nextPiece;
-	}
 	
 	public boolean hasLost() {
 		return lost;
@@ -156,11 +146,16 @@ public class StateLookAhead {
 		return turn;
 	}
 	
+	// CS3243 added
+	public void setNextPiece(int nextPiece) {
+		this.nextPiece = nextPiece;
+	}
 
-	//CS3243
 	public StateLookAhead(State state) {
 		int[][] sField = state.getField();
 		int[] sTop = state.getTop();
+
+		this.nextPiece = state.getNextPiece();
 
 		for (int i = 0; i < ROWS; i++) {
 			for (int j = 0; j < COLS; j++) {
@@ -320,9 +315,6 @@ public class StateLookAhead {
 		label.line(COLS, 0, COLS, ROWS+5);
 	}
 	
-
-	
-
 }
 
 
