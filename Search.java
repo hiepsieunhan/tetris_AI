@@ -11,11 +11,13 @@ public class Search {
 
 	public static final int noFactor = 6;
 	public static final String fileName = "result.txt";
+	public static final String logFileName = "log.txt";
 
 	private static final int population = 100;
 	private static final int[] signs = {1, -1, -1, -1, -1, -1};
+	private static final int[] seeds = {19, 29, 35};
 
-	private static final int FITNESS_TRIALS = 5;
+	private static final int FITNESS_TRIALS = 3;
 
 	private ArrayList<Strategy> myList;
 	private ArrayList<Strategy> myQueueList;
@@ -52,14 +54,25 @@ public class Search {
 	}
 
 	private void log(Strategy s) {
-		System.out.println("turn: " + counter);
-		System.out.println(s.getFitness() / FITNESS_TRIALS);
-		double[] w = s.getW();
-		for (int i = 0; i < w.length; i++) {
-			System.out.print(String.valueOf((int)(w[i] * 1000000)/1000000.0) + " ");
+
+		Writer writer = null;
+		try {
+		    writer = new BufferedWriter(new OutputStreamWriter(
+		          new FileOutputStream(logFileName, true), "utf-8"));
+
+		    writer.write("turn " + counter + "\n");
+		    writer.write((s.getFitness() / FITNESS_TRIALS) + "\n");
+		    double[] w = s.getW();
+		    for (int i = 0; i < w.length; i++) {
+		    	writer.write(String.valueOf((int)(w[i] * 100000000)/100000000.0) + " ");
+		    }
+		    writer.write("\n");
+		    writer.write("--------------------------\n");
+		} catch (IOException ex) {
+		  // report
+		} finally {
+		   try {writer.close();} catch (Exception ex) {/*ignore*/}
 		}
-		System.out.println("");
-		System.out.println("----------------------------");
 	}
 
 	private void calcalateFitness() {
@@ -86,9 +99,10 @@ public class Search {
 	private static int fitness(double[] wValues) {
 		int res = 0, score;
 		for (int i = 0; i < FITNESS_TRIALS; i++) {
-			State s = new State();
+			CustomState s = new CustomState();
+			s.setSeed(seeds[i]);
 			while (!s.hasLost()) {
-				s.makeMove(StateHelper.bestMove(s, wValues));
+				s.makeMove(StateHelperLA.bestMove(s, wValues));
 			}
 			int point = s.getRowsCleared();
 			res += point;
@@ -243,7 +257,7 @@ public class Search {
 		    for (Strategy s : myList) {
 		    	double[] w = s.getW();
 		    	for (int i = 0; i < w.length; i++) {
-		    		writer.write(String.valueOf((int)(w[i] * 1000000)/1000000.0) + " ");
+		    		writer.write(String.valueOf((int)(w[i] * 100000000)/100000000.0) + " ");
 		    	}
 		    	writer.write("\n");
 		    }

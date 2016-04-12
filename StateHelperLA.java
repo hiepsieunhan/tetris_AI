@@ -11,19 +11,20 @@ public class StateHelperLA	 {
 	private static final int ID_WELL_COUNT = 5;
 
 	public static int bestMove(State state, double[] wValues) {
-		int maxHeight = calMaxHeight(state.getTop());
-		CustomState cState = new CustomState(state);
-		if (maxHeight <= 10) {
-			return bestMoveNormal(cState, wValues);
-		}
+		return bestMove(new CustomState(state), wValues);
+	}
 
-		//System.out.println("look ahead: " + maxHeight);
+	public static int bestMove(CustomState state, double[] wValues) {
+		int maxHeight = calMaxHeight(state.getTop());
+		if (maxHeight <= 100) {
+			return bestMoveNormal(state, wValues);
+		}
 
 		int legalMoves = state.legalMoves().length;
 		int bestMove = 0;
 		double maxRes = -Double.MAX_VALUE;
 		for (int i = 0; i < legalMoves; i++) {
-			cState = new CustomState(state);
+			CustomState cState = new CustomState(state);
 			int rowsCleared = cState.makeMove(i);
 			if (cState.hasLost()) continue;
 			double cur = sumMove(cState, wValues) + rowsCleared * wValues[ID_ROW_CLEARED];

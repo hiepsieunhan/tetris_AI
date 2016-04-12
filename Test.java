@@ -3,7 +3,7 @@ import java.util.Scanner;
 public class Test {
 
 	public static int play(double[] w) {
-		State s = new State();
+		CustomState s = new CustomState();
 		int step = 0;
 		while (!s.hasLost()) {
 			s.makeMove(StateHelperLA.bestMove(s, w));

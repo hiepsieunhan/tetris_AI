@@ -1,20 +1,12 @@
 import java.awt.Color;
-
-
-
+import java.util.Random;
 
 public class CustomState {
 	public static final int COLS = 10;
 	public static final int ROWS = 21;
 	public static final int N_PIECES = 7;
 
-
-
 	public boolean lost = false;
-
-
-
-
 
 	public TLabel label;
 
@@ -31,6 +23,7 @@ public class CustomState {
 
 	//number of next piece
 	protected int nextPiece;
+	private Random generator = null;
 
 
 
@@ -174,7 +167,9 @@ public class CustomState {
 		return turn;
 	}
 
-
+	public void setSeed(long seed) {
+		generator = new Random(seed);
+	}
 
 	//constructor
 	public CustomState() {
@@ -186,9 +181,18 @@ public class CustomState {
 		setNextPiece(s.getNextPiece());
 	}
 
+	public CustomState(CustomState s) {
+		setField(s.getField());
+		setTop(s.getTop());
+		setNextPiece(s.getNextPiece());
+	}
+
 	// TODO: customize random seed
 	private int randomPiece() {
-		return (int)(Math.random()*N_PIECES);
+		if (generator == null) {
+			return (int)(Math.random()*N_PIECES);
+		}
+		return generator.nextInt(N_PIECES);
 	}
 
 	//gives legal moves for
