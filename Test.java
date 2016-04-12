@@ -1,16 +1,19 @@
 import java.util.Scanner;
 
 public class Test {
-	
+
 	public static int play(double[] w) {
 		State s = new State();
+		int step = 0;
 		while (!s.hasLost()) {
 			s.makeMove(StateHelper.bestMove(s, w));
-		}			
-		//System.out.println(s.getRowsCleared());
+			step++;
+			if (step % 10000 == 0) System.out.print(s.getRowsCleared() + " ");
+		}
+		System.out.println();
 		return s.getRowsCleared();
 	}
-	
+
 	public static void main(String[] args) {
 
 		int noFactor = Search.noFactor;
@@ -18,10 +21,10 @@ public class Test {
 		double[] w = new double[noFactor];
 		Scanner sc = new Scanner(System.in);
 		for (int i = 0; i < noFactor; i++) w[i] = sc.nextDouble();
-		int Min = 10000000;
+		int Min = 100000000;
 		int Max = 0;
 		int sum = 0;
-		int sampleSize = 100;
+		int sampleSize = 30;
 		for (int i = 0; i < sampleSize; i++) {
 			int cur = play(w);
 			System.out.println(cur);

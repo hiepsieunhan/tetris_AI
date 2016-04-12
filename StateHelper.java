@@ -128,7 +128,7 @@ public class StateHelper {
 		double res = wValues[ID_ROW_CLEARED] * rowsCleared
 							 + wValues[ID_LANDING_HEIGHT] * landingHeight
 							 + wValues[ID_HOLE] * calHole(field, top)
-							 + wValues[ID_HORIZONTAL_ROUGHNESS] * calVerticalRoughness(field, top)
+							 + wValues[ID_HORIZONTAL_ROUGHNESS] * calHorizontalRoughness(field, top)
 							 + wValues[ID_VERTICAL_ROUGHNESS] * calVerticalRoughness(field, top)
 							 + wValues[ID_WELL_COUNT] * calWellCount(field, top);
 		return res;
