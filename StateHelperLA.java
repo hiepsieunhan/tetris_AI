@@ -1,4 +1,4 @@
-public class StateHelper {
+public class StateHelperLA	 {
 
 	private static int ROWS = State.ROWS;
 	private static int COLS = State.COLS;
@@ -11,11 +11,49 @@ public class StateHelper {
 	private static final int ID_WELL_COUNT = 5;
 
 	public static int bestMove(State state, double[] wValues) {
+		int maxHeight = calMaxHeight(state.getTop());
+		CustomState cState = new CustomState(state);
+		if (maxHeight <= 10) {
+			return bestMoveNormal(cState, wValues);
+		}
 
-		int[][] legalMoves = state.legalMoves();
+		//System.out.println("look ahead: " + maxHeight);
+
+		int legalMoves = state.legalMoves().length;
 		int bestMove = 0;
 		double maxRes = -Double.MAX_VALUE;
-		for (int i = 0; i < legalMoves.length; i++) {
+		for (int i = 0; i < legalMoves; i++) {
+			cState = new CustomState(state);
+			int rowsCleared = cState.makeMove(i);
+			if (cState.hasLost()) continue;
+			double cur = sumMove(cState, wValues) + rowsCleared * wValues[ID_ROW_CLEARED];
+			if (Double.compare(cur, maxRes) > 0) {
+				maxRes = cur;
+				bestMove = i;
+			}
+		}
+		return bestMove;
+	}
+
+	public static double sumMove(CustomState state, double[] wValues) {
+		double res = 0;
+		for (int i = 0; i < 7; i++) {
+			state.setNextPiece(i);
+			res += makeMove(state, bestMoveNormal(state, wValues), wValues);
+		}
+		return res/7;
+	}
+
+	public static int bestMoveNormal(State state, double[] wValues) {
+		CustomState cState = new CustomState(state);
+		return bestMoveNormal(cState, wValues);
+	}
+
+	public static int bestMoveNormal(CustomState state, double[] wValues) {
+		int legalMoves = state.legalMoves().length;
+		int bestMove = 0;
+		double maxRes = -Double.MAX_VALUE;
+		for (int i = 0; i < legalMoves; i++) {
 			double cur = makeMove(state, i, wValues);
 			if (Double.compare(cur, maxRes) > 0) {
 				maxRes = cur;
@@ -25,18 +63,14 @@ public class StateHelper {
 		return bestMove;
 	}
 
-	public static double makeMove(State state, int move, double[] wValues) {
+	public static double makeMove(CustomState state, int move, double[] wValues) {
 		int nextPiece = state.getNextPiece();
 		int[] lMove = state.legalMoves()[move];
 		return makeMove(state, lMove[State.ORIENT], lMove[State.SLOT], wValues);
 	}
 
 
-	/* 	returns false if you lose - true otherwise
-		simulate makeMove method
-		value return is expected value base on the providec value
-	*/
-	public static double makeMove(State state, int orient, int slot, double[] wValues) {
+	public static double makeMove(CustomState state, int orient, int slot, double[] wValues) {
 
 		// get from state object
 
@@ -192,5 +226,14 @@ public class StateHelper {
 		}
 		return res;
 	}
+
+	public static int calMaxHeight(int[] top) {
+		int res = 0;
+		for (int i = 0; i < COLS; i++) {
+			res = Math.max(res, top[i]);
+		}
+		return res;
+	}
+
 }
 

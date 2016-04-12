@@ -6,9 +6,9 @@ public class Test {
 		State s = new State();
 		int step = 0;
 		while (!s.hasLost()) {
-			s.makeMove(StateHelper.bestMove(s, w));
+			s.makeMove(StateHelperLA.bestMove(s, w));
 			step++;
-			if (step % 10000 == 0) System.out.print(s.getRowsCleared() + " ");
+			if (step % 100000 == 0) System.out.print(s.getRowsCleared() + " ");
 		}
 		System.out.println();
 		return s.getRowsCleared();
@@ -24,10 +24,10 @@ public class Test {
 		int Min = 100000000;
 		int Max = 0;
 		int sum = 0;
-		int sampleSize = 30;
+		int sampleSize = 10;
 		for (int i = 0; i < sampleSize; i++) {
 			int cur = play(w);
-			System.out.println(cur);
+			System.out.println("turn " + (i + 1) + ": " + cur);
 			sum += cur;
 			Min = Math.min(cur, Min);
 			Max = Math.max(cur, Max);

@@ -1,9 +1,10 @@
 
 public class PlayerSkeleton {
+	// 3.4181268101392694 -4.500158825082766 -3.2178882868487753 -9.348695305445199 -7.899265427351652 -3.3855972247263626
 	double[] wValues = {3.4181268101392694, -4.500158825082766, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
 
 	public int pickMove(State s, int[][] legalMoves) {
-		return StateHelper.bestMove(s, wValues);
+		return StateHelperLA.bestMove(s, wValues);
 	}
 
 	public static void main(String[] args) {
