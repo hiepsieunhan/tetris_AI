@@ -1,21 +1,24 @@
 import java.util.ArrayList;
 import java.io.*;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class Search {
+
+	private static final int MYTHREADS = 5;
 
 	public static final int noFactor = 14;
 	public static final String fileName = "result.txt";
 
 	private static final int population = 100;
 	private static final int[] signs = {1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-	
-	private static final int TURN_LIMIT = 1000;
-	private static final int POINT_LIMIT = 150;
-	private static final int FITNESS_TRIALS = 30;
+
+	private static final int FITNESS_TRIALS = 5;
 
 	private ArrayList<Strategy> myList;
+	private ArrayList<Strategy> myQueueList;
 	private int counter;
 
 	public static void main(String[] args) {
@@ -26,13 +29,17 @@ public class Search {
 	private void search() {
 		counter = 0;
 		initVectors();
-		int crossOverNo = (int)(population/3.0);
-		int mutateNo = (int)(population/3.0);
+		int crossOverNo = (int)(population/10.0);
+		int mutateNo = (int)(population/10.0);
 		while (true) {
 			ArrayList<Strategy> crossOverList = crossOver(crossOverNo);
 			ArrayList<Strategy> mutateList = mutate(mutateNo);
-			myList.addAll(crossOverList);
-			myList.addAll(mutateList);
+			myQueueList = new ArrayList<>();
+			myQueueList.addAll(crossOverList);
+			myQueueList.addAll(mutateList);
+
+			calcalateFitness();
+
 			deleteOverflow();
 			updateVectors();
 			counter++;
@@ -49,25 +56,41 @@ public class Search {
 		System.out.println(s.getFitness() / FITNESS_TRIALS);
 		double[] w = s.getW();
 		for (int i = 0; i < w.length; i++) {
-			System.out.print(String.valueOf((int)(w[i] * 10000)/10000.0) + " ");
+			System.out.print(String.valueOf((int)(w[i] * 1000000)/1000000.0) + " ");
 		}
 		System.out.println("");
 		System.out.println("----------------------------");
 	}
 
-	private int fitness(double[] wValues) {
+	private void calcalateFitness() {
+		ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
+		int dividedSize = (int)Math.ceil(myQueueList.size() * 1.0 / MYTHREADS);
+		int cur = 0;
+		for (int i = 0; i < MYTHREADS; i++) {
+			MyCalFitness curThread = new MyCalFitness(i + 1);
+			for (int j = 0; j < dividedSize; j++) {
+				if (cur >= myQueueList.size()) break;
+				curThread.addStrategy(myQueueList.get(cur));
+				cur++;
+			}
+			executor.execute(curThread);
+		}
+		executor.shutdown();
+		while (!executor.isTerminated()) {
+		}
+		for (Strategy s : myQueueList) {
+			myList.add(s);
+		}
+	}
+
+	private static int fitness(double[] wValues) {
 		int res = 0, score;
 		for (int i = 0; i < FITNESS_TRIALS; i++) {
 			State s = new State();
-			for (int turn = 0; turn < TURN_LIMIT; turn++) {
+			while (!s.hasLost()) {
 				s.makeMove(StateHelper.bestMove(s, wValues));
-				if (s.hasLost()) break;
 			}
-			int point = s.getRowsCleared();			
-			if (s.hasLost()) {
-				//point = 0;
-				point = Math.max(0, point - POINT_LIMIT);
-			}
+			int point = s.getRowsCleared();
 			res += point;
 		}
 		return res;
@@ -80,8 +103,8 @@ public class Search {
 		}
 		if (random(100) >= probMofidy) return w;
 		int position = random(wValues.length);
-		double delta = Math.random() * 0.3 - 0.15;
-		//double delta = w[position] * 4 / 5 * Math.random();
+		double maxDelta = 0.2 / ((int)(counter / 200) + 1);
+		double delta = Math.random() * maxDelta * 2 - maxDelta;
 		if (random(2) == 0) delta = -delta;
 		w[position] += delta;
 		return w;
@@ -111,7 +134,7 @@ public class Search {
 			w[i] = wValues[i] / sum;
 		}
 		return w;
-	} 
+	}
 
 	private double[] randomW() {
 		double[] w = new double[noFactor];
@@ -146,20 +169,14 @@ public class Search {
 		while (--s >= 0) {
 			//double[] newW = combine(randomList.get(0), randomList.get(1));
 			double[] newW;
-			if (random(10) >= 3) {
-				ArrayList<Strategy> randomList = randomSelect(sampleSize);
-				newW = combine(randomList.get(0), randomList.get(1));
-				newW = normalize(modify(normalize(newW), 10));
-			} else {
-				int firstId = random(population);
-				int secondId = random(population);
-				if (secondId == firstId) {
-					if (firstId == 0) secondId++; 
-					else secondId--;
-				}
-				newW = combine(myList.get(firstId), myList.get(secondId));
-				newW = normalize(modify(normalize(newW), 10));
+			int firstId = random(population);
+			int secondId = random(population);
+			if (secondId == firstId) {
+				if (firstId == 0) secondId++;
+				else secondId--;
 			}
+			newW = combine(myList.get(firstId), myList.get(secondId));
+			newW = normalize(modify(normalize(newW), 10));
 			int fitness = fitness(newW);
 			res.add(new Strategy(newW, fitness));
 		}
@@ -186,6 +203,7 @@ public class Search {
 
 	private void initVectors() {
 		myList = new ArrayList<>();
+		myQueueList = new ArrayList<>();
 		BufferedReader reader = null;
 		try {
 			FileReader fr = new FileReader(fileName);
@@ -196,8 +214,7 @@ public class Search {
 				double[] w = new double[noFactor];
 				for (int i = 0; i < noFactor; i++) w[i] = Double.parseDouble(params[i]);
 				w = normalize(w);
-				int fitness = fitness(w);
-				myList.add(new Strategy(w, fitness));
+				myQueueList.add(new Strategy(w, -1));
 			}
 		} catch (IOException ex) {
 
@@ -209,11 +226,11 @@ public class Search {
 		}
 
 		// create to have enough population
-		while (myList.size() < population) {
+		while (myQueueList.size() < population) {
 			double[] w = randomW();
-			int fitness = fitness(w);
-			myList.add(new Strategy(w, fitness));
+			myQueueList.add(new Strategy(w, -1));
 		}
+		calcalateFitness();
 	}
 
 	private void updateVectors() {
@@ -222,11 +239,11 @@ public class Search {
 		try {
 		    writer = new BufferedWriter(new OutputStreamWriter(
 		          new FileOutputStream(fileName), "utf-8"));
-		    
+
 		    for (Strategy s : myList) {
 		    	double[] w = s.getW();
 		    	for (int i = 0; i < w.length; i++) {
-		    		writer.write(String.valueOf((int)(w[i] * 10000)/10000.0) + " ");
+		    		writer.write(String.valueOf((int)(w[i] * 1000000)/1000000.0) + " ");
 		    	}
 		    	writer.write("\n");
 		    }
@@ -238,7 +255,32 @@ public class Search {
 		}
 	}
 
-}	
+	class MyCalFitness implements Runnable {
+		ArrayList<Strategy> list;
+		int index;
+		public MyCalFitness(int index) {
+			list = new ArrayList<>();
+			this.index = index;
+		}
+
+		public void addStrategy(Strategy s) {
+			list.add(s);
+		}
+
+		@Override
+		public void run() {
+			try {
+				for (Strategy s : list) {
+					int fitness = Search.fitness(s.getW());
+					System.out.println(index + " " + fitness);
+					s.setFitness(fitness);
+				}
+			} catch (Exception e) {
+			}
+		}
+	}
+
+}
 
 class Strategy implements Comparable<Strategy> {
 	private int fitness;
@@ -265,8 +307,7 @@ class Strategy implements Comparable<Strategy> {
 	}
 
 	public int compareTo(Strategy other) {
-		// descending order. 
+		// descending order.
 		return other.fitness - this.fitness;
 	}
-
 }
