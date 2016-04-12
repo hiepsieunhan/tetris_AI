@@ -1,11 +1,11 @@
 
 public class PlayerSkeleton {
-	double[] wValues = {0.1871, -0.3838, -0.1993, -0.092, -0.1759, -0.3865 ,-0.1519 ,-0.4035, -0.1729, -0.1662, -0.1233, -0.2532, -0.344 ,-0.3843};
+	double[] wValues = {3.4181268101392694, -4.500158825082766, -3.2178882868487753, -9.348695305445199, -7.899265427351652, -3.3855972247263626};
 
 	public int pickMove(State s, int[][] legalMoves) {
 		return StateHelper.bestMove(s, wValues);
 	}
-	
+
 	public static void main(String[] args) {
 		State s = new State();
 		new TFrame(s);
@@ -23,5 +23,5 @@ public class PlayerSkeleton {
 		}
 		System.out.println("You have completed "+s.getRowsCleared()+" rows.");
 	}
-	
+
 }

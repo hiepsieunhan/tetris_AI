@@ -9,11 +9,11 @@ public class Search {
 
 	private static final int MYTHREADS = 5;
 
-	public static final int noFactor = 14;
+	public static final int noFactor = 6;
 	public static final String fileName = "result.txt";
 
 	private static final int population = 100;
-	private static final int[] signs = {1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	private static final int[] signs = {1, -1, -1, -1, -1, -1};
 
 	private static final int FITNESS_TRIALS = 5;
 

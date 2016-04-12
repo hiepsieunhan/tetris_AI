@@ -4,20 +4,11 @@ public class StateHelper {
 	private static int COLS = State.COLS;
 
 	private static final int ID_ROW_CLEARED = 0;
-	private static final int ID_SUM_HEIGHT = 1;
-	private static final int ID_ROUGHNESS = 2;
-	private static final int ID_FILLED_SPOT_COUNT = 3;
-	private static final int ID_WEIGHTED_FILLED_SPOT_COUNT = 4;
-	private static final int ID_MAX_HEIGHT = 5;
-	private static final int ID_HEIGHT_DELTA = 6;
-	private static final int ID_HOLE = 7;
-	private static final int ID_DEPTH_WEIGHTED_HOLE = 8;
-	private static final int ID_WEIGHTED_HOLE = 9;
-	private static final int ID_DEEPEST_HOLE = 10;
-	private static final int ID_WELL_COUNT = 11;
-	private static final int ID_HORIZONTAL_ROUGHNESS = 12;
-	private static final int ID_VERTICAL_ROUGHNESS = 13;
-
+	private static final int ID_LANDING_HEIGHT = 1;
+	private static final int ID_HORIZONTAL_ROUGHNESS = 2;
+	private static final int ID_VERTICAL_ROUGHNESS = 3;
+	private static final int ID_HOLE = 4;
+	private static final int ID_WELL_COUNT = 5;
 
 	public static int bestMove(State state, double[] wValues) {
 		int[][] legalMoves = state.legalMoves();
@@ -31,7 +22,7 @@ public class StateHelper {
 			}
 		}
 		return bestMove;
-	} 
+	}
 
 	public static double makeMove(State state, int move, double[] wValues) {
 		int nextPiece = state.getNextPiece();
@@ -48,6 +39,8 @@ public class StateHelper {
 
 		// get from state object
 
+		int landingHeight = 0;
+
 		int[] oriTop = state.getTop();
 		int[][] oriField = state.getField();
 		int[] top = new int[COLS];
@@ -57,11 +50,11 @@ public class StateHelper {
 			top[i] = oriTop[i];
 		}
 		// copy content of field[][]
-		for (int i = 0; i < ROWS; i++) 
+		for (int i = 0; i < ROWS; i++)
 			for (int j = 0; j < COLS; j++) {
 				field[i][j] = oriField[i][j];
 			}
- 
+
 		int[][][] pBottom = state.getpBottom();
 		int[][][] pTop = state.getpTop();
 		int[][] pWidth = state.getpWidth();
@@ -74,29 +67,31 @@ public class StateHelper {
 		for(int c = 1; c < pWidth[nextPiece][orient];c++) {
 			height = Math.max(height,top[slot+c]-pBottom[nextPiece][orient][c]);
 		}
-		
+
 		//check if game ended
 		if(height+pHeight[nextPiece][orient] >= ROWS) {
-			return -1000000000;
+			return -1000000000000L;
 		}
 
-		
+		landingHeight = height + (pHeight[nextPiece][orient] - 1) / 2;
+
+
 		//for each column in the piece - fill in the appropriate blocks
 		for(int i = 0; i < pWidth[nextPiece][orient]; i++) {
-			
+
 			//from bottom to top of brick
 			for(int h = height+pBottom[nextPiece][orient][i]; h < height+pTop[nextPiece][orient][i]; h++) {
 				field[h][i+slot] = 1;
 			}
 		}
-		
+
 		//adjust top
 		for(int c = 0; c < pWidth[nextPiece][orient]; c++) {
 			top[slot+c]=height+pTop[nextPiece][orient][c];
 		}
-		
+
 		int rowsCleared = 0;
-		
+
 		//check for full rows - starting at the top
 		for(int r = height+pHeight[nextPiece][orient]-1; r >= height; r--) {
 			//check all columns in the row
@@ -123,84 +118,21 @@ public class StateHelper {
 				}
 			}
 		}
-	
-		return cal(rowsCleared, field, top, wValues);
+
+		return cal(rowsCleared, landingHeight, field, top, wValues);
 	}
 
 
 	// TODO: implement this method
-	public static double cal(int rowsCleared, int[][] field, int[] top, double[] wValues) {
+	public static double cal(int rowsCleared, int landingHeight, int[][] field, int[] top, double[] wValues) {
 		double res = wValues[ID_ROW_CLEARED] * rowsCleared
-				+ wValues[ID_SUM_HEIGHT] * calSumHeight(top)
-				+ wValues[ID_ROUGHNESS] * calRoughness(top)
-				+ wValues[ID_FILLED_SPOT_COUNT] * calFilledSpotCount(field, top)
-				+ wValues[ID_WEIGHTED_FILLED_SPOT_COUNT] * calWeightedFilledSpotCount(field, top)
-				+ wValues[ID_MAX_HEIGHT] * calMaxHeight(top)
-				+ wValues[ID_HEIGHT_DELTA] * calHeightDelta(top)
-				+ wValues[ID_HOLE] * calHole(field, top)
-				+ wValues[ID_DEPTH_WEIGHTED_HOLE] * calDepthWeightedHole(field, top)
-				+ wValues[ID_WEIGHTED_HOLE] * calWeightedHole(field, top)
-				+ wValues[ID_DEEPEST_HOLE] * calDeepestHole(field, top)
-				+ wValues[ID_WELL_COUNT] * calWellCount(field, top)
-				+ wValues[ID_HORIZONTAL_ROUGHNESS] * calHorizontalRoughness(field, top)
-				+ wValues[ID_VERTICAL_ROUGHNESS] * calVerticalRoughness(field, top);
+							 + wValues[ID_LANDING_HEIGHT] * landingHeight
+							 + wValues[ID_HOLE] * calHole(field, top)
+							 + wValues[ID_HORIZONTAL_ROUGHNESS] * calVerticalRoughness(field, top)
+							 + wValues[ID_VERTICAL_ROUGHNESS] * calVerticalRoughness(field, top)
+							 + wValues[ID_WELL_COUNT] * calWellCount(field, top);
 		return res;
 	}
-
-	public static int calSumHeight(int[] top) {
-		int res = 0;
-		for (int i = 0; i < COLS; i++) {
-			res += top[i];
-		}
-		return res;
-	}
-
-	public static int calRoughness(int[] top) {
-		int res = 0;
-		for (int i = 0; i < COLS - 1; i++) {
-			res += Math.abs(top[i] - top[i + 1]);
-		}
-		//System.out.println("count Bump " + res);		
-		return res;
-	}
-
-	public static int calFilledSpotCount(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			for (int i = 0; i < top[j]; i++) if (field[i][j] > 0) {
-				res++;
-			}
-		}
-		return res;
-	}
-
-	public static int calWeightedFilledSpotCount(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			for (int i = 0; i < top[j]; i++) if (field[i][j] > 0) {
-				res += (i + 1);
-			}
-		}
-		return res;
-	}
-
-	public static int calMaxHeight(int[] top) {
-		int res = 0;
-		for (int i = 0; i < COLS; i++) {
-			res = Math.max(res, top[i]);
-		}
-		return res;
-	}
-
-	public static int calHeightDelta(int[] top) {
-		int Max = 0, Min = ROWS + 1;
-		for (int i = 0; i < COLS; i++) {
-			Max = Math.max(Max, top[i]);
-			Min = Math.min(Min, top[i]);
-		}
-		return Max - Min;
-	}
-
 
 	public static int calHole(int[][] field, int[] top) {
 		int res = 0;
@@ -211,51 +143,6 @@ public class StateHelper {
 			} else {
 				ok = 1;
 			}
-		}	 
-		return res;
-	}
-
-	public static int calDepthWeightedHole(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			int depth = 0;
-			for (int i = top[j] - 1; i >= 0; i--) {
-				depth++;
-				if (field[i][j] == 0) {
-					res += depth;
-				}
-			}
-		}	 
-		return res;
-	}
-
-	public static int calWeightedHole(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			for (int i = top[j] - 1; i >= 0; i--) if (field[i][j] == 0) {
-				res += i + 1;
-			}
-		}
-		return res;
-	}
-
-	public static int calDeepestHole(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			for (int i = 0; i < top[j]; i++) if (field[i][j] == 0) {
-				res = Math.max(top[j] - i, res);
-				break;
-			}
-		}
-		return res;
-	}
-
-	public static int calWellCount(int[][] field, int[] top) {
-		int res = 0;
-		for (int j = 0; j < COLS; j++) {
-			for (int i = 0; i < top[j] - 2; i++) if (field[i][j] == 0) {
-				res++;
-			}
 		}
 		return res;
 	}
@@ -263,9 +150,15 @@ public class StateHelper {
 	public static int calHorizontalRoughness(int[][] field, int[] top) {
 		int res = 0;
 		for (int i = 0; i < ROWS; i++) {
-			for (int j = 1; j < COLS; j++) if (field[i][j] != field[i][j - 1]) {
-				res++;
+			int lastCell = 1;
+			for (int j = 0; j < COLS; j++) {
+				int cur = field[i][j] > 0 ? 1 : 0;
+				if (cur != lastCell) {
+					res++;
+				}
+				lastCell = cur;
 			}
+			if (lastCell == 0) res++;
 		}
 		return res;
 	}
@@ -273,11 +166,31 @@ public class StateHelper {
 	public static int calVerticalRoughness(int[][] field, int[] top) {
 		int res = 0;
 		for (int j = 0; j < COLS; j++) {
-			for (int i = 1; i < top[j]; i++) if (field[i][j] != field[i - 1][j]) {
-				res++;
+			int lastCell = 1;
+			for (int i = 0; i <= top[j]; i++) {
+				int cur = field[i][j] > 0 ? 1 : 0;
+				if (cur != lastCell) {
+					res++;
+				}
+				lastCell = cur;
+			}
+		}
+		return res;
+	}
+
+	public static int calWellCount(int[][] field, int[] top) {
+		int res = 0;
+		for (int i = 0; i < ROWS; i++) {
+			for (int j = 0; j < COLS; j++) if (field[i][j] == 0) {
+				int leftCell = j > 0 ? field[i][j - 1] : 1;
+				int rightCell = j < COLS - 1 ? field[i][j + 1] : 1;
+				if (leftCell > 0 && rightCell > 0) {
+					res++;
+				}
 			}
 		}
 		return res;
 	}
 
 }
+
