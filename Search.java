@@ -16,9 +16,9 @@ public class Search {
 
 	private static final int population = 100;
 	private static final int[] signs = {1, -1, -1, -1, -1, -1};
-	private static final int[] seeds = {19, 29, 35};
+	private static final int[] seeds = {6, 8, 19, 29, 23};
 
-	private static final int FITNESS_TRIALS = 3;
+	private static final int FITNESS_TRIALS = 5;
 
 	private ArrayList<Strategy> myList;
 	private ArrayList<Strategy> myQueueList;
@@ -62,7 +62,7 @@ public class Search {
 		          new FileOutputStream(logFileName, true), "utf-8"));
 
 		    Date date = new Date();
-		    writer.write(date.toString());
+		    writer.write(date.toString() + "\n");
 		    writer.write("turn " + counter + "\n");
 		    writer.write((s.getFitness() / FITNESS_TRIALS) + "\n");
 		    double[] w = s.getW();

@@ -4,6 +4,7 @@ public class Test {
 
 	public static int play(double[] w) {
 		CustomState s = new CustomState();
+		//s.setSeed(29);
 		int step = 0;
 		while (!s.hasLost()) {
 			s.makeMove(StateHelperLA.bestMove(s, w));
