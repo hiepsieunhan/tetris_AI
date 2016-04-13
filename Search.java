@@ -3,11 +3,12 @@ import java.io.*;
 import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.Date;
 
 
 public class Search {
 
-	private static final int MYTHREADS = 5;
+	private static final int MYTHREADS = 30;
 
 	public static final int noFactor = 6;
 	public static final String fileName = "result.txt";
@@ -60,6 +61,8 @@ public class Search {
 		    writer = new BufferedWriter(new OutputStreamWriter(
 		          new FileOutputStream(logFileName, true), "utf-8"));
 
+		    Date date = new Date();
+		    writer.write(date.toString());
 		    writer.write("turn " + counter + "\n");
 		    writer.write((s.getFitness() / FITNESS_TRIALS) + "\n");
 		    double[] w = s.getW();
@@ -228,7 +231,12 @@ public class Search {
 				double[] w = new double[noFactor];
 				for (int i = 0; i < noFactor; i++) w[i] = Double.parseDouble(params[i]);
 				w = normalize(w);
-				myQueueList.add(new Strategy(w, -1));
+				if (params.length == noFactor) {
+					myQueueList.add(new Strategy(w, -1));
+				} else {
+					myList.add(new Strategy(w, Integer.parseInt(params[noFactor])));
+				}
+
 			}
 		} catch (IOException ex) {
 
@@ -259,7 +267,7 @@ public class Search {
 		    	for (int i = 0; i < w.length; i++) {
 		    		writer.write(String.valueOf((int)(w[i] * 100000000)/100000000.0) + " ");
 		    	}
-		    	writer.write("\n");
+		    	writer.write(s.getFitness() + "\n");
 		    }
 
 		} catch (IOException ex) {
