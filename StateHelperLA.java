@@ -10,10 +10,12 @@ public class StateHelperLA	 {
 	private static final int ID_HOLE = 4;
 	private static final int ID_WELL_COUNT = 5;
 
+	// Select the best next move using Look Ahead
 	public static int bestMove(State state, double[] wValues) {
 		return bestMove(new CustomState(state), wValues);
 	}
 
+	// Select the best next move using Look Ahead
 	public static int bestMove(CustomState state, double[] wValues) {
 		int maxHeight = calMaxHeight(state.getTop());
 		if (maxHeight <= 15) {
@@ -64,6 +66,7 @@ public class StateHelperLA	 {
 		return bestMove;
 	}
 
+	// return heuristic function value for the move if it is made
 	public static double makeMove(CustomState state, int move, double[] wValues) {
 		int nextPiece = state.getNextPiece();
 		int[] lMove = state.legalMoves()[move];
@@ -71,6 +74,7 @@ public class StateHelperLA	 {
 	}
 
 
+	// return heuristic function value for the move if it is made
 	public static double makeMove(CustomState state, int orient, int slot, double[] wValues) {
 
 		// get from state object
@@ -159,7 +163,7 @@ public class StateHelperLA	 {
 	}
 
 
-	// TODO: implement this method
+	// Calculate the heuristic function value of the state
 	public static double cal(int rowsCleared, int landingHeight, int[][] field, int[] top, double[] wValues) {
 		double res = wValues[ID_ROW_CLEARED] * rowsCleared
 							 + wValues[ID_LANDING_HEIGHT] * landingHeight
@@ -170,6 +174,7 @@ public class StateHelperLA	 {
 		return res;
 	}
 
+	// Count number of holes
 	public static int calHole(int[][] field, int[] top) {
 		int res = 0;
 		for (int j = 0; j < COLS; j++) {
@@ -183,6 +188,7 @@ public class StateHelperLA	 {
 		return res;
 	}
 
+	// Calculate horizontal roughness
 	public static int calHorizontalRoughness(int[][] field, int[] top) {
 		int res = 0;
 		for (int i = 0; i < ROWS; i++) {
@@ -199,6 +205,7 @@ public class StateHelperLA	 {
 		return res;
 	}
 
+	// Calculate vertical roughness
 	public static int calVerticalRoughness(int[][] field, int[] top) {
 		int res = 0;
 		for (int j = 0; j < COLS; j++) {
@@ -214,6 +221,7 @@ public class StateHelperLA	 {
 		return res;
 	}
 
+	// Calculate well count
 	public static int calWellCount(int[][] field, int[] top) {
 		int res = 0;
 		for (int i = 0; i < ROWS; i++) {
@@ -228,6 +236,7 @@ public class StateHelperLA	 {
 		return res;
 	}
 
+	// Calculate max height
 	public static int calMaxHeight(int[] top) {
 		int res = 0;
 		for (int i = 0; i < COLS; i++) {

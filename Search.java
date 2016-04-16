@@ -18,7 +18,7 @@ public class Search {
 	private static final int[] signs = {1, -1, -1, -1, -1, -1};
 	private static final int[] seeds = {6, 8, 19, 29, 23};
 
-	private static final int FITNESS_TRIALS = 5;
+	private static final int FITNESS_TRIALS = 3;
 
 	private ArrayList<Strategy> myList;
 	private ArrayList<Strategy> myQueueList;
