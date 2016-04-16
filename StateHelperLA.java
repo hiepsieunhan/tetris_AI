@@ -16,7 +16,7 @@ public class StateHelperLA	 {
 
 	public static int bestMove(CustomState state, double[] wValues) {
 		int maxHeight = calMaxHeight(state.getTop());
-		if (maxHeight <= 100) {
+		if (maxHeight <= 15) {
 			return bestMoveNormal(state, wValues);
 		}
 
